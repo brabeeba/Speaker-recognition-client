@@ -1,14 +1,24 @@
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 
-import Switch from './Switch'
-import TrainingForm from './TrainingForm'
+import Switch from './Switch';
+import TrainingForm from './TrainingForm';
+import Timer from './Timer';
 
 import {connect} from 'react-redux';
 
 import * as actionCreator from '../action_creator';
 
-import {BarChart} from 'react-d3-components'
+import {BarChart} from 'react-d3-components';
+
+import ConditionPage from './ConditionPage';
+import SetupPage from './SetupPage';
+import TaskOnePage from './TaskOnePage';
+import MeetingOnePage from './MeetingOnePage';
+import MeetingOneFinishPage from './MeetingOneFinishPage';
+import MeetingTwoPage from './MeetingTwoPage';
+import MeetingTwoFinishPage from './MeetingTwoFinishPage';
+import FinishPage from './FinishPage';
 
 
 export const MainPage = React.createClass({
@@ -61,12 +71,12 @@ export const MainPage = React.createClass({
 
 		    	if (this.props.switch === "Train") {
 		    		if (this.props.isRecording) {
-		      			this.props.sendAudio(inputBuffer.getChannelData(0), inputBuffer.sampleRate, this.props.label, this.props.length);
+		      			this.props.sendAudio(inputBuffer.getChannelData(0), inputBuffer.sampleRate, this.props.label, this.props.length, this.props.groupid, this.props.participantid);
 		      		}
 		    	}
 
 		    	if (this.props.switch === "Predict") {
-		    		this.props.predict(inputBuffer.getChannelData(0), inputBuffer.sampleRate, this.props.length);
+		    		this.props.predict(inputBuffer.getChannelData(0), inputBuffer.sampleRate, this.props.length, this.props.groupid);
 		    	}
 		
 		      
@@ -98,23 +108,37 @@ export const MainPage = React.createClass({
 		
 		return (
 			<div>
-			<Switch buttons = {this.getButtons()} selected = {this.getSelected()} switchLabel = {this.props.switchLabel}/>
 			{(() => {
-				switch (this.getSelected()) {
-				case this.getButtons().get(0):
-					return (<TrainingForm isRecording = {this.getIsRecording()} record = {this.props.record} stop = {this.props.stop} />);
-				case this.getButtons().get(1):
-					if (this.getBarChartData().length === 0) {
-						return
-					} else {
-						return (<BarChart data={{values: this.getBarChartData()}} width={400} height={400} margin={{top: 10, bottom: 50, left: 50, right: 10}}/>);
-					}
+				switch (this.props.page) {
+				case 1:
+					return (<ConditionPage selectCondition = {this.props.selectCondition} nextPage = {this.props.nextPage} setTime = {this.props.setTime}/>);
+				case 2:
+					return (<SetupPage nextPage = {this.props.nextPage} record = {this.props.record} participants = {this.props.participants} isRecording = {this.getIsRecording()} stop = {this.props.stop} setupTimer = {this.props.setupTimer} countDown = {this.props.countDown} startOver = {this.props.startOver} groupid = {this.props.groupid} completeSetup = {this.props.completeSetup}/>);
+				case 3:
+					return (<TaskOnePage nextPage = {this.props.nextPage} startOver = {this.props.startOver} participants = {this.props.participants} groupid = {this.props.groupid} setTime = {this.props.setTime} openMeetingHandle = {this.props.openMeetingHandle} condition = {this.props.condition}/>);
+				case 4:
+					return (<MeetingOnePage data = {this.props.data} setupTimer = {this.props.setupTimer} beginMeetingOne = {this.props.beginMeetingOne} switchLabel = {this.props.switchLabel} countDown = {this.props.countDown} nextPage = {this.props.nextPage} condition = {this.props.condition} meetingOne = {this.props.meetingOne} closeMeetingHandle = {this.props.closeMeetingHandle} groupid = {this.props.groupid}/>);
+				case 5:
+					return (<MeetingOneFinishPage data = {this.props.data} nextPage = {this.props.nextPage} setTime = {this.props.setTime} clearData = {this.props.clearData} condition = {this.props.condition} openMeetingHandle = {this.props.openMeetingHandle} condition = {this.props.condition} groupid = {this.props.groupid}/>);
+
+				case 6:
+					return (<MeetingTwoPage data = {this.props.data} setupTimer = {this.props.setupTimer} beginMeetingOne = {this.props.beginMeetingOne} switchLabel = {this.props.switchLabel} countDown = {this.props.countDown} nextPage = {this.props.nextPage} condition = {this.props.condition} meetingOne = {this.props.meetingOne} closeMeetingHandle = {this.props.closeMeetingHandle} groupid = {this.props.groupid}/>);
+				case 7:
+					return (<MeetingTwoFinishPage data = {this.props.data} nextPage = {this.props.nextPage} setTime = {this.props.setTime} clearData = {this.props.clearData} condition = {this.props.condition}/>);
+
+				case 8:
+					return (
+						<FinishPage finishMeeting = {this.props.finishMeeting} groupid = {this.props.groupid}/>
+						);
 					
 				default:
 					return;
 				}
 			})()}
 			</div>
+
+
+		
 			
 			);
 	}
@@ -128,7 +152,15 @@ function mapStateToProps (state) {
 	    length: state.get('length'),
 	    label: state.get('label'),
 	    switch: state.get('switchLabel'),
-	    data: state.get('data')
+	    data: state.get('data'),
+	    time: state.get('time'),
+	    page: state.get('page'),
+	    condition: state.get('condition'),
+	    participants: state.get('participants'),
+	    setupTimer: state.get('setupTimer'),
+	    groupid: state.get('groupid'),
+	    participantid: state.get('participantid'),
+	    meetingOne: state.get('meetingOne')
 	  }
 }
 
